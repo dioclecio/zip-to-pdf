@@ -9,10 +9,11 @@ import (
     "os"
     "os/exec"
     "path/filepath"
+    "strings"
 )
 
-// Função para descomprimir o arquivo ZIP
-func unzip(src string, dest string) error {
+// unzip extrai o conteúdo de um arquivo ZIP para um diretório de destino.
+func unzip(src, dest string) error {
     r, err := zip.OpenReader(src)
     if err != nil {
         return err
@@ -52,20 +53,51 @@ func unzip(src string, dest string) error {
     return nil
 }
 
-// Função para converter Markdown em PDF usando Pandoc
-func convertMarkdownToPDF(mdFilePath string, pdfDir string) error {
-    pdfFilePath := filepath.Join(pdfDir, filepath.Base(mdFilePath[:len(mdFilePath)-2]+"pdf"))
-	fmt.Printf("Arquivo: %s\n", pdfFilePath)
+// convertMarkdownToPDF converte um arquivo Markdown em PDF usando Pandoc.
+func convertMarkdownToPDF(mdFilePath, pdfDir string) error {
+    pdfFilePath := filepath.Join(pdfDir, strings.TrimSuffix(filepath.Base(mdFilePath), ".md")+".pdf")
     cmd := exec.Command("pandoc", mdFilePath, "-o", pdfFilePath)
-    err := cmd.Run()
-    if err != nil {
+    if err := cmd.Run(); err != nil {
         return fmt.Errorf("erro ao converter %s para PDF: %v", mdFilePath, err)
     }
-    fmt.Printf("Arquivo convertido para PDF: %s\n", pdfFilePath)
+    log.Printf("Arquivo convertido para PDF: %s\n", pdfFilePath)
     return nil
 }
 
-// Handler para o upload do arquivo
+// zipDirectory comprime um diretório em um arquivo ZIP.
+func zipDirectory(src, dest string) error {
+    zipFile, err := os.Create(dest)
+    if err != nil {
+        return err
+    }
+    defer zipFile.Close()
+
+    writer := zip.NewWriter(zipFile)
+    defer writer.Close()
+
+    return filepath.Walk(src, func(file string, fi os.FileInfo, err error) error {
+        if err != nil {
+            return err
+        }
+        if fi.Mode().IsRegular() {
+            f, err := writer.Create(strings.TrimPrefix(file, src+"/"))
+            if err != nil {
+                return err
+            }
+            srcFile, err := os.Open(file)
+            if err != nil {
+                return err
+            }
+            defer srcFile.Close()
+            if _, err = io.Copy(f, srcFile); err != nil {
+                return err
+            }
+        }
+        return nil
+    })
+}
+
+// uploadHandler lida com o upload do arquivo e processa a conversão.
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
     if r.Method != http.MethodPost {
         http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
@@ -106,11 +138,11 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
     pdfDir := filepath.Join(dest, "PDF")
     if err := os.MkdirAll(pdfDir, os.ModePerm); err != nil {
-        http.Error(w, "Erro ao criar diretório PDF", http.StatusInternalServerError)
+        http.Error(w, "Erro ao criar diret ório PDF", http.StatusInternalServerError)
         return
     }
 
-    err = filepath.Walk(dest, func(path string, info os.FileInfo, err error) error {
+    if err := filepath.Walk(dest, func(path string, info os.FileInfo, err error) error {
         if err != nil {
             return err
         }
@@ -120,24 +152,34 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
             }
         }
         return nil
-    })
-
-    if err != nil {
+    }); err != nil {
         http.Error(w, "Erro ao converter arquivos Markdown para PDF", http.StatusInternalServerError)
         return
     }
 
-    fmt.Fprintf(w, "Arquivo descomprimido e arquivos Markdown convertidos com sucesso em %s", dest)
+    zipFilePath := "./PDF.zip"
+    if err := zipDirectory(pdfDir, zipFilePath); err != nil {
+        http.Error(w, "Erro ao comprimir a pasta PDF", http.StatusInternalServerError)
+        return
+    }
+
+    if err := os.RemoveAll(dest); err != nil {
+        http.Error(w, "Erro ao remover a pasta descomprimida", http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/zip")
+    w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filepath.Base(zipFilePath)))
+    http.ServeFile(w, r, zipFilePath)
 }
 
 func main() {
-    // Verifica se o Pandoc está instalado
     if _, err := exec.LookPath("pandoc"); err != nil {
         log.Fatal("Pandoc não está instalado. Por favor, instale o Pandoc para usar este serviço.")
     }
 
     http.HandleFunc("/upload", uploadHandler)
-    fmt.Println("Servidor rodando na porta 8080...")
+    log.Println("Servidor rodando na porta 8080...")
     if err := http.ListenAndServe(":8080", nil); err != nil {
         log.Fatal(err)
     }

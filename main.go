@@ -56,7 +56,9 @@ func unzip(src, dest string) error {
 // convertMarkdownToPDF converte um arquivo Markdown em PDF usando Pandoc.
 func convertMarkdownToPDF(mdFilePath, pdfDir string) error {
     pdfFilePath := filepath.Join(pdfDir, strings.TrimSuffix(filepath.Base(mdFilePath), ".md")+".pdf")
-    cmd := exec.Command("pandoc", mdFilePath, "-o", pdfFilePath)
+    mdPath := filepath.Dir(mdFilePath)
+    cmd := exec.Command("pandoc '" + mdFilePath + "' -o '" + pdfFilePath + "' --template 'eisvogel' --listings --file-scope --resource-path '" + mdPath + "'")
+    log.Println(cmd)
     if err := cmd.Run(); err != nil {
         return fmt.Errorf("erro ao converter %s para PDF: %v", mdFilePath, err)
     }
@@ -125,7 +127,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    dest := "./unzipped"
+    dest := "/data/unzipped"
     if err := os.MkdirAll(dest, os.ModePerm); err != nil {
         http.Error(w, "Erro ao criar diretório de destino", http.StatusInternalServerError)
         return
@@ -136,9 +138,9 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    pdfDir := filepath.Join(dest, "PDF")
+    pdfDir := "/data/pdf"
     if err := os.MkdirAll(pdfDir, os.ModePerm); err != nil {
-        http.Error(w, "Erro ao criar diret ório PDF", http.StatusInternalServerError)
+        http.Error(w, "Erro ao criar diretório PDF", http.StatusInternalServerError)
         return
     }
 
@@ -147,6 +149,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
             return err
         }
         if filepath.Ext(path) == ".md" {
+    
             if err := convertMarkdownToPDF(path, pdfDir); err != nil {
                 return err
             }
@@ -157,7 +160,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    zipFilePath := "./PDF.zip"
+    zipFilePath := "/data/arquivoPDF.zip"
     if err := zipDirectory(pdfDir, zipFilePath); err != nil {
         http.Error(w, "Erro ao comprimir a pasta PDF", http.StatusInternalServerError)
         return
@@ -179,8 +182,8 @@ func main() {
     }
 
     http.HandleFunc("/upload", uploadHandler)
-    log.Println("Servidor rodando na porta 8080...")
-    if err := http.ListenAndServe(":8080", nil); err != nil {
+    log.Println("Servidor rodando na porta 5000...")
+    if err := http.ListenAndServe(":5000", nil); err != nil {
         log.Fatal(err)
     }
 }

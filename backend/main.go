@@ -129,7 +129,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    dest := "/data/unzipped"
+    dest := "../data/unzipped"
     if err := os.MkdirAll(dest, os.ModePerm); err != nil {
         http.Error(w, "Erro ao criar diretório de destino", http.StatusInternalServerError)
         return
@@ -140,7 +140,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    pdfDir := "/data/pdf"
+    pdfDir := "../data/pdf"
     if err := os.MkdirAll(pdfDir, os.ModePerm); err != nil {
         http.Error(w, "Erro ao criar diretório PDF", http.StatusInternalServerError)
         return
@@ -162,7 +162,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    zipFilePath := "/data/arquivoPDF.zip"
+    zipFilePath := "../data/arquivoPDF.zip"
     if err := zipDirectory(pdfDir, zipFilePath); err != nil {
         http.Error(w, "Erro ao comprimir a pasta PDF", http.StatusInternalServerError)
         return

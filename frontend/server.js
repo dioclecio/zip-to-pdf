@@ -15,7 +15,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: '../data/uploads/' });
 
 app.post('/upload', upload.single('entrada'), async (req, res) => {
     console.log('Arquivo recebido:', req.file.originalname); // Log do nome do arquivo recebido

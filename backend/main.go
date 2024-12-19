@@ -57,8 +57,10 @@ func unzip(src, dest string) error {
 func convertMarkdownToPDF(mdFilePath, pdfDir string) error {
     pdfFilePath := filepath.Join(pdfDir, strings.TrimSuffix(filepath.Base(mdFilePath), ".md")+".pdf")
     mdPath := filepath.Dir(mdFilePath)
+    bgPath := "./bg"
+    resourcesPath := bgPath + ":" + mdPath
     // cmd := exec.Command("pandoc '" + mdFilePath + "' -o '" + pdfFilePath + "' --template 'eisvogel' --listings --file-scope --resource-path '" + mdPath + "'")
-    cmd := exec.Command("pandoc", mdFilePath, "-o", pdfFilePath, "--template", "eisvogel", "--listings", "--file-scope", "--resource-path", mdPath)
+    cmd := exec.Command("pandoc", mdFilePath, "-o", pdfFilePath, "--template", "eisvogel", "--listings", "--file-scope", "--resource-path", resourcesPath)
     
     if err := cmd.Run(); err != nil {
         log.Println(cmd)

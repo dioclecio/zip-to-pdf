@@ -1,0 +1,8 @@
+services:
+  backend:
+    image: relatorios-backend
+
+  frontend:
+    image: relatorios-frontend
+    ports:
+      - 8080:3000

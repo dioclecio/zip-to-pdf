@@ -1,8 +1,8 @@
 # Usar a imagem base do Node.js
 FROM docker.io/node
 LABEL mainatainer="Dioclecio Camelo <dmcamelo@uem.br>"
-LABEL br.uem.cpa.relatorios.web-zip2pdf.author="Dioclecio Camelo"
-LABEL br.uem.cpa.relatorios.web-zip2pdf.version="v10"
+LABEL br.uem.cpa.relatorios.frontend.author="Dioclecio Camelo"
+LABEL br.uem.cpa.relatorios.frontend.version="v10"
 # Criar diretório de trabalho
 WORKDIR /app
 

@@ -60,8 +60,18 @@ func convertMarkdownToPDF(mdFilePath, pdfDir string) error {
     bgPath := "./bg"
     resourcesPath := bgPath + ":" + mdPath
     // cmd := exec.Command("pandoc '" + mdFilePath + "' -o '" + pdfFilePath + "' --template 'eisvogel' --listings --file-scope --resource-path '" + mdPath + "'")
-    cmd := exec.Command("pandoc", mdFilePath, "-o", pdfFilePath, "--template", "eisvogel", "--listings", "--file-scope", "--resource-path", resourcesPath)
-    
+    // cmd := exec.Command("pandoc", mdFilePath, "-o", pdfFilePath, "--template", "eisvogel", "--listings", "--file-scope", "--resource-path", resourcesPath)
+    cmd := exec.Command("pandoc", 
+    "'"+mdFilePath+"'",           // Caminho do arquivo Markdown com aspas
+    "-o",                          // Opção de saída
+    "'"+pdfFilePath+"'",           // Caminho do PDF de saída com aspas
+    "--template", "./bg/cpa", 
+    "--listings", 
+    "--file-scope", 
+    "--verbose",
+    "--resource-path", "'"+resourcesPath+"'", // Caminho de recursos com aspas
+    )
+
     if err := cmd.Run(); err != nil {
         log.Println(cmd)
         return fmt.Errorf("erro ao converter %s para PDF: %v", mdFilePath, err)

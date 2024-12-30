@@ -1,0 +1,24 @@
+name: Montagem das Imagens dos Containers
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build frontend
+      run: cd frontend
+      run: docker build . --file Dockerfile --tag relatorios-frontend:$(date +%s)
+      run: docker build . --file Dockerfile --tag relatorios-frontend:latest
+    - name: Build backend
+      run: cd backend
+      run: docker build . --file Dockerfile --tag relatorios-backend:$(date +%s)
+      run: docker build . --file Dockerfile --tag relatorios-backend:latest

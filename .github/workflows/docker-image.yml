@@ -17,10 +17,11 @@ jobs:
     - name: Montagem do frontend
       run: cd frontend && docker build . --file Dockerfile --tag relatorios-frontend:$(date +%s) && docker build . --file Dockerfile --tag relatorios-frontend:latest
     - uses: actions/checkout@v4
-    - name: Instalação do Go
-      run: cd backend && apt update && apt install -y golang
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.23.4'
     - name: Montagem do binário
-      run: go build main.go
+      run: cd backend && go build main.go
     - name: Montagem do backend
       run: docker build . --file Dockerfile --tag relatorios-backend:$(date +%s) && docker build . --file Dockerfile --tag relatorios-backend:latest
 

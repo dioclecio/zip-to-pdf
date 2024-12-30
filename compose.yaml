@@ -1,9 +1,9 @@
 services:
   backend:
-    image: relatorios-backend
+    image: docker.io/uemcpa/relatorios-backend
 
   frontend:
-    image: relatorios-frontend
+    image: docker.io/uemcpa/relatorios-frontend
     volumes:
       - ./data:/data:rw
     environment:

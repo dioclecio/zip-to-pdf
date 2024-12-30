@@ -6,17 +6,60 @@
     <title>Enviar Arquivo ZIP</title>
     <!-- Link para o CSS do Bootstrap -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script>
+
+
+        // No frontend, considere adicionar um indicador de carregamento
+document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const loadingIndicator = document.getElementById('loading');
+
+    try {
+        loadingIndicator.style.display = 'block'; // Mostrar indicador de carregamento
+
+        const response = await fetch('/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = response.headers.get('Content-Disposition')
+                .split('filename=')[1].replace(/"/g, '');
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } else {
+            const errorMessage = await response.text();
+            alert(`Erro no processamento: ${errorMessage}`);
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro na comunicação com o servidor');
+    } finally {
+        loadingIndicator.style.display = 'none'; // Ocultar indicador de carregamento
+    }
+});
+    </script>
 </head>
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Enviar Arquivo ZIP</h1>
-        <form action="/upload" method="post" enctype="multipart/form-data" class="mt-4">
+        <form action="/upload" id="uploadForm" method="post" enctype="multipart/form-data" class="mt-4">
             <div class="form-group">
                 <label for="file">Escolha um arquivo ZIP:</label>
                 <input type="file" class="form-control-file" name="file" id="file" accept=".zip" required>
             </div>
             <button type="submit" class="btn btn-primary btn-block">Enviar</button>
         </form>
+    </div>
+
+    <div id="loading" style="display:none;">
+        Processando... Isto pode levar até 30 minutos
     </div>
 
     <!-- Link para o JS do Bootstrap e jQuery -->

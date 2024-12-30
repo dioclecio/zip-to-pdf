@@ -17,93 +17,75 @@ app.get('/', (req, res) => {
 // Configuração do multer para armazenar arquivos na pasta uploads
 const upload = multer({ dest: '../data/uploads/' }); // Usando caminho relativo
 
-app.post('/upload', upload.single('entrada'), async (req, res) => {
-    console.log('Arquivo recebido:', req.file.originalname); // Log do nome do arquivo recebido
-
-    // Verifique se o arquivo é um ZIP
-    if (req.file.mimetype !== 'application/zip') {
-        return res.status(400).send('O arquivo enviado não é um arquivo ZIP.');
-    }
+app.post('/upload', upload.single('file'), async (req, res) => {
+    // Declarar filePath antes do bloco try
+    const filePath = req.file ? `../data/uploads/${req.file.filename}` : null;
 
     try {
-        const filePath = `../data/uploads/${req.file.filename}`; // Usando caminho relativo
-        const apiUrl = process.env.API_URL; // Obtém a URL da API da variável de ambiente
-
-        // Verifique se a variável de ambiente API_URL está definida
-        if (!apiUrl) {
-            console.error('API_URL não está definida.');
-            return res.status(500).send('API_URL não está definida.');
+        // Validações iniciais
+        if (!req.file) {
+            return res.status(400).send('Nenhum arquivo enviado');
         }
 
-        console.log('Enviando arquivo para a API:', apiUrl);
+        // Verificação de tipo de arquivo
+        if (req.file.mimetype !== 'application/zip') {
+            return res.status(400).send('Apenas arquivos ZIP são permitidos');
+        }
+
+        const apiUrl = process.env.API_URL;
+
+        // Configuração do FormData
         const form = new FormData();
-        form.append('entrada', fs.createReadStream(filePath));
+        form.append('file', fs.createReadStream(filePath), {
+            filename: req.file.originalname,
+            contentType: 'application/zip'
+        });
 
-        const request_config = {
+        // Resto do código permanece igual
+        const response = await axios.post(apiUrl, form, {
             headers: {
-                ...form.getHeaders(), // Adiciona os headers do FormData
-                'Content-Type': 'application/zip'
+                ...form.getHeaders(),
+                'Content-Type': 'multipart/form-data'
             },
-            responseType: 'arraybuffer'
-        };
+            responseType: 'arraybuffer', 
+            maxBodyLength: Infinity,
+            maxContentLength: Infinity,
+            timeout: 30 * 60 * 1000, 
+        });
 
-        try {
-            const response = await axios.post(apiUrl, form, request_config);
+        // Gerar nome para o arquivo de resultado
+        const timestamp = new Date().toISOString().replace(/:/g, '-');
+        const resultFilename = `resultado_${timestamp}.zip`;
 
-            // Verifique se a resposta é um arquivo ZIP
-            if (response.status !== 200) {
-                console.error('Erro na resposta da API:', response.status);
-                return res.status(500).send('Erro na resposta da API');
-            }
+        // Configurar cabeçalhos para download
+        res.set({
+            'Content-Type': 'application/zip',
+            'Content-Disposition': `attachment; filename="${resultFilename}"`
+        });
 
-            const contentType = response.headers['content-type'];
-            if (!contentType || !contentType.includes('application/zip')) {
-                console.error('A resposta da API não é um arquivo ZIP. Tipo de conteúdo:', contentType);
-                return res.status(500).send('A resposta da API não é um arquivo ZIP.');
-            }
+        // Enviar o arquivo ZIP de volta para o cliente
+        res.send(response.data);
 
-            // Verifique se a resposta contém dados
-            if (!response.data || response.data.length === 0) {
-                console.error('A resposta da API está vazia.');
-                return res.status(500).send('A resposta da API está vazia.');
-            }
-
-            console.log('Arquivo recebido da API, tamanho:', response.data.length); // Log do tamanho do arquivo recebido
-
-            // Salvar o arquivo ZIP recebido
-            const outputFilePath = path.join(__dirname, 'output.zip');
-            fs.writeFileSync(outputFilePath, response.data);
-            console.log('Arquivo ZIP salvo como output.zip');
-
-            // Remover o arquivo da pasta uploads
-            fs.unlink(filePath, (err) => {
-                if (err) {
-                    console.error('Erro ao remover o arquivo:', err);
-                } else {
-                    console.log('Arquivo removido da pasta uploads:', filePath);
-                }
-            });
-
-            // Enviar o arquivo para o cliente
-            return res.download(outputFilePath, 'output.zip', (err) => {
-                if (err) {
-                    console.error('Erro ao enviar o arquivo:', err);
-                    return res.status(500).send('Erro ao enviar o arquivo');
-                }
-                console.log('Arquivo enviado com sucesso:', outputFilePath);
-            });
-        } catch (error) {
-            console.error('Erro ao processar o arquivo:', error.message);
-            if (error.response) {
-                console.error('Erro detalhes:', error.response.data);
-            } else {
-                console.error('Erro sem resposta:', error);
-            }
-            return res.status(500).send('Erro ao processar o arquivo');
-        }
     } catch (error) {
-        console.error('Erro ao processar o arquivo:', error); // Log do erro para depuração
-        return res.status(500).send('Erro ao processar o arquivo');
+        // Tratamento de erro detalhado
+        console.error('Erro no processamento:', error);
+
+        if (error.code === 'ECONNABORTED') {
+            return res.status(504).send('Tempo limite de processamento excedido');
+        }
+
+        if (error.response) {
+            return res.status(error.response.status).send(error.response.data);
+        } else {
+            return res.status(500).send('Erro interno no processamento');
+        }
+    } finally {
+        // Verificação adicional antes de excluir
+        if (filePath && fs.existsSync(filePath)) {
+            fs.unlink(filePath, (err) => {
+                if (err) console.error('Erro ao excluir arquivo temporário:', err);
+            });
+        }
     }
 });
 

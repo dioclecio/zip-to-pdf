@@ -10,6 +10,7 @@ import (
     "os/exec"
     "path/filepath"
     "strings"
+    "time"
 )
 
 // unzip extrai o conteúdo de um arquivo ZIP para um diretório de destino.
@@ -61,21 +62,34 @@ func convertMarkdownToPDF(mdFilePath, pdfDir string) error {
     resourcesPath := bgPath + ":" + mdPath
     // cmd := exec.Command("pandoc '" + mdFilePath + "' -o '" + pdfFilePath + "' --template 'eisvogel' --listings --file-scope --resource-path '" + mdPath + "'")
     // cmd := exec.Command("pandoc", mdFilePath, "-o", pdfFilePath, "--template", "eisvogel", "--listings", "--file-scope", "--resource-path", resourcesPath)
+    // cmd := exec.Command("pandoc", 
+    // "'"+mdFilePath+"'",           // Caminho do arquivo Markdown com aspas
+    // "-o",                          // Opção de saída
+    // "'" + pdfFilePath + "'",           // Caminho do PDF de saída com aspas
+    // "--template", "./bg/cpa", 
+    // "--listings", 
+    // "--file-scope", 
+    // "--verbose",
+    // "--resource-path", "'" + resourcesPath + "'", // Caminho de recursos com aspas
+    // )
     cmd := exec.Command("pandoc", 
-    "'"+mdFilePath+"'",           // Caminho do arquivo Markdown com aspas
-    "-o",                          // Opção de saída
-    "'"+pdfFilePath+"'",           // Caminho do PDF de saída com aspas
+    mdFilePath,           // Remover aspas
+    "-o", 
+    pdfFilePath,          // Remover aspas
     "--template", "./bg/cpa", 
     "--listings", 
     "--file-scope", 
     "--verbose",
-    "--resource-path", "'"+resourcesPath+"'", // Caminho de recursos com aspas
-    )
+    "--resource-path", resourcesPath,
+    )   
 
-    if err := cmd.Run(); err != nil {
-        log.Println(cmd)
+    output, err := cmd.CombinedOutput()
+    if err != nil {
+        log.Printf("Erro ao converter PDF: %v\n", err)
+        log.Printf("Saída do comando: %s\n", string(output))
         return fmt.Errorf("erro ao converter %s para PDF: %v", mdFilePath, err)
     }
+
     log.Printf("Arquivo convertido para PDF: %s\n", pdfFilePath)
     return nil
 }
@@ -120,7 +134,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    r.ParseMultipartForm(10 << 20) // 10 MB
+    r.ParseMultipartForm(200 << 20) // 10 MB
 
     file, _, err := r.FormFile("file")
     if err != nil {
@@ -174,7 +188,9 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    zipFilePath := "../data/arquivoPDF.zip"
+    // Gerar nome do arquivo com timestamp
+    timestamp := time.Now().Format("20060102_150405")
+    zipFilePath := fmt.Sprintf("../data/arquivoPDF_%s.zip", timestamp)
     if err := zipDirectory(pdfDir, zipFilePath); err != nil {
         http.Error(w, "Erro ao comprimir a pasta PDF", http.StatusInternalServerError)
         return
@@ -182,6 +198,12 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
     if err := os.RemoveAll(dest); err != nil {
         http.Error(w, "Erro ao remover a pasta descomprimida", http.StatusInternalServerError)
+        return
+    }
+
+    // Nova linha para remover o diretório de PDFs
+    if err := os.RemoveAll(pdfDir); err != nil {
+        http.Error(w, "Erro ao remover a pasta de PDFs", http.StatusInternalServerError)
         return
     }
 

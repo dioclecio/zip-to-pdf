@@ -17,4 +17,4 @@ jobs:
     - name: Montagem do frontend
       run: cd frontend && docker build . --file Dockerfile --tag relatorios-frontend:$(date +%s) && docker build . --file Dockerfile --tag relatorios-frontend:latest
     - name: Montagem do backend
-      run: cd backend && docker build . --file Dockerfile --tag relatorios-backend:$(date +%s) && docker build . --file Dockerfile --tag relatorios-backend:latest
+      run: cd ../backend && docker build . --file Dockerfile --tag relatorios-backend:$(date +%s) && docker build . --file Dockerfile --tag relatorios-backend:latest

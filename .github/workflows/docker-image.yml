@@ -14,11 +14,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Build frontend
-      run: cd frontend
-      run: docker build . --file Dockerfile --tag relatorios-frontend:$(date +%s)
-      run: docker build . --file Dockerfile --tag relatorios-frontend:latest
-    - name: Build backend
-      run: cd backend
-      run: docker build . --file Dockerfile --tag relatorios-backend:$(date +%s)
-      run: docker build . --file Dockerfile --tag relatorios-backend:latest
+    - name: Montagem do frontend
+      run: cd frontend && docker build . --file Dockerfile --tag relatorios-frontend:$(date +%s) && docker build . --file Dockerfile --tag relatorios-frontend:latest
+    - name: Montagem do backend
+      run: cd backend && docker build . --file Dockerfile --tag relatorios-backend:$(date +%s) && docker build . --file Dockerfile --tag relatorios-backend:latest

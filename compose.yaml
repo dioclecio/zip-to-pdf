@@ -5,8 +5,11 @@ services:
   frontend:
     image: docker.io/uemcpa/relatorios-frontend
     volumes:
-      - ./data:/data:rw
+      - frontend-data:/data:rw
     environment:
       - API_URL=http://backend:5000/upload
     ports:
       - 8080:3000
+volumes:
+  frontend-data:
+  

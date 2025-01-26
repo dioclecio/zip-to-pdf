@@ -1,15 +1,21 @@
 services:
-  backend:
-    image: docker.io/uemcpa/relatorios-backend
+  conversor-pdf-backend:
+    image: quay.io/uemcpa/conversor-pdf-backend
+    networks:
+      - rede-cpa
 
-  frontend:
-    image: docker.io/uemcpa/relatorios-frontend
+  conversor-pdf-frontend:
+    image: quay.io/uemcpa/conversor-pdf-frontend
     volumes:
-      - frontend-data:/data:rw
+      - conversor-pdf-frontend-data:/data:rw
     environment:
-      - API_URL=http://backend:5000/upload
+      - API_URL=http://conversor-pdf-backend:5000/upload
     ports:
       - 8080:3000
+    networks:
+      - rede-cpa
 volumes:
-  frontend-data:
-  
+  conversor-pdf-frontend-data:
+
+networks:
+  rede-cpa:

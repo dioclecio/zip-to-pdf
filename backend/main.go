@@ -74,17 +74,15 @@ func convertMarkdownToPDF(mdFilePath, pdfDir string) error {
     // "--resource-path", "'" + resourcesPath + "'", // Caminho de recursos com aspas
     // )
     cmd := exec.Command("pandoc", 
-    headerPath, 
-    mdFilePath, 
-    "--filter" , "pandoc-crossref",
-    "-o", 
-    pdfFilePath,          // Remover aspas
-    "--template", "./bg/cpa", 
-    "--listings", 
-    "--file-scope", 
-    "--verbose",
-    "--resource-path", resourcesPath,
-    )   
+        headerPath, mdFilePath,
+        "--filter" , "pandoc-crossref",
+        "-o", 
+        pdfFilePath,
+        "--template", "./bg/cpa", 
+        "--listings", 
+        "--file-scope", 
+        "--verbose",
+        "--resource-path", resourcesPath)   
 
     output, err := cmd.CombinedOutput()
     if err != nil {

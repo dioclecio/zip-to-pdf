@@ -61,34 +61,21 @@ func convertMarkdownToPDF(mdFilePath, pdfDir string) error {
     bgPath := "./bg"
     resourcesPath := bgPath + ":" + mdPath
     headerPath := bgPath + "/header.md"
-    // cmd := exec.Command("pandoc '" + mdFilePath + "' -o '" + pdfFilePath + "' --template 'eisvogel' --listings --file-scope --resource-path '" + mdPath + "'")
-    // cmd := exec.Command("pandoc", mdFilePath, "-o", pdfFilePath, "--template", "eisvogel", "--listings", "--file-scope", "--resource-path", resourcesPath)
-    // cmd := exec.Command("pandoc", 
-    // "'"+mdFilePath+"'",           // Caminho do arquivo Markdown com aspas
-    // "-o",                          // Opção de saída
-    // "'" + pdfFilePath + "'",           // Caminho do PDF de saída com aspas
-    // "--template", "./bg/cpa", 
-    // "--listings", 
-    // "--file-scope", 
-    // "--verbose",
-    // "--resource-path", "'" + resourcesPath + "'", // Caminho de recursos com aspas
-    // )
     cmd := exec.Command("pandoc", 
         "--filter" , "pandoc-crossref",
-        "-o", 
-        pdfFilePath,
-        "--template", "./bg/cpa", 
+        "--template", bgPath + "/cpa", 
         "--listings", 
         "--file-scope", 
         "--verbose",
         "--resource-path", resourcesPath,
-        headerPath, mdFilePath)   
-
+        headerPath, mdFilePath,
+        "-o", 
+        pdfFilePath)   
     output, err := cmd.CombinedOutput()
     if err != nil {
         log.Printf("Erro ao converter PDF: %v\n", err)
         log.Printf("Saída do comando: %s\n", string(output))
-        return fmt.Errorf("erro ao converter %s para PDF: %v", mdFilePath, err)
+        return fmt.Errorf("Erro ao converter %s para PDF: %v", mdFilePath, err)
     }
 
     log.Printf("Arquivo convertido para PDF: %s\n", pdfFilePath)

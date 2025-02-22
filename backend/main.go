@@ -63,6 +63,7 @@ func convertMarkdownToPDF(mdFilePath, pdfDir string) error {
     headerPath := bgPath + "/header.md"
     cmd := exec.Command("pandoc", 
         "--filter" , "pandoc-crossref",
+        "--pdf-engine", "xelatex", 
         "--template", bgPath + "/cpa", 
         "--listings", 
         "--file-scope", 

@@ -12,6 +12,7 @@ lofTitle: Lista de Figuras
 lotTitle: Lista de Tabelas
 figPrefix: figura
 tblPrefix: tabela
+mainfont: "EB Garamond"
 ---
 \tableofcontents
 \pagebreak

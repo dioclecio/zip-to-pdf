@@ -11,6 +11,7 @@ import (
     "path/filepath"
     "strings"
     "time"
+    "github.com/pdfcpu/pdfcpu/pkg/api"
 )
 
 // unzip extrai o conteúdo de um arquivo ZIP para um diretório de destino.
@@ -54,9 +55,23 @@ func unzip(src, dest string) error {
     return nil
 }
 
+func combinePDFs(inputPDF, outputPDF string) error {
+    // Use pdfcpu to combine PDFs
+    inFiles := []string{"./bg/capa.pdf", inputPDF}
+    err := api.MergeCreateFile(inFiles, outputPDF, nil)
+    if err != nil {
+        log.Printf("Erro ao combinar PDFs: %v\n", err)
+        return fmt.Errorf("Erro ao combinar %s com capa: %v", inputPDF, err)
+    }
+    return nil
+}
+
+
+
 // convertMarkdownToPDF converte um arquivo Markdown em PDF usando Pandoc.
 func convertMarkdownToPDF(mdFilePath, pdfDir string) error {
-    pdfFilePath := filepath.Join(pdfDir, strings.TrimSuffix(filepath.Base(mdFilePath), ".md")+".pdf")
+    baseName := strings.TrimSuffix(filepath.Base(mdFilePath), ".md")
+    pdfFilePath := filepath.Join(pdfDir, baseName+".pdf")
     mdPath := filepath.Dir(mdFilePath)
     bgPath := "./bg"
     resourcesPath := bgPath + ":" + mdPath
@@ -166,7 +181,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
             return err
         }
         if filepath.Ext(path) == ".md" {
-    
             if err := convertMarkdownToPDF(path, pdfDir); err != nil {
                 return err
             }
@@ -177,10 +191,33 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    // Combina cada PDF gerado com a capa
+    combinedDir := "../data/combined_pdf"
+    if err := os.MkdirAll(combinedDir, os.ModePerm); err != nil {
+        http.Error(w, "Erro ao criar diretório de PDFs combinados", http.StatusInternalServerError)
+        return
+    }
+
+    if err := filepath.Walk(pdfDir, func(path string, info os.FileInfo, err error) error {
+        if err != nil {
+            return err
+        }
+        if filepath.Ext(path) == ".pdf" {
+            combinedPath := filepath.Join(combinedDir, filepath.Base(path))
+            if err := combinePDFs(path, combinedPath); err != nil {
+                return err
+            }
+        }
+        return nil
+    }); err != nil {
+        http.Error(w, "Erro ao combinar PDFs com capa", http.StatusInternalServerError)
+        return
+    }
+
     // Gerar nome do arquivo com timestamp
     timestamp := time.Now().Format("20060102_150405")
     zipFilePath := fmt.Sprintf("../data/arquivoPDF_%s.zip", timestamp)
-    if err := zipDirectory(pdfDir, zipFilePath); err != nil {
+    if err := zipDirectory(combinedDir, zipFilePath); err != nil {
         http.Error(w, "Erro ao comprimir a pasta PDF", http.StatusInternalServerError)
         return
     }
@@ -199,6 +236,11 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/zip")
     w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filepath.Base(zipFilePath)))
     http.ServeFile(w, r, zipFilePath)
+    
+    // Remove the combined PDF directory after serving the file
+    if err := os.RemoveAll(combinedDir); err != nil {
+        log.Printf("Erro ao remover a pasta de PDFs combinados: %v\n", err)
+    }
 }
 
 func main() {

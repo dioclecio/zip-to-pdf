@@ -8,12 +8,15 @@ RUN  for i in *.zip; do bn=$(basename $i .zip); mkdir .fonts/$bn; unzip -j -d .f
 FROM docker.io/golang AS compiler
 WORKDIR /src
 COPY . .
+RUN go mod tidy
 RUN go build main.go
+# RUN go get github.com/pdfcpu/pdfcpu
 # Montar a imagem que vai para o repositório
 FROM docker.io/pandoc/extra:latest-ubuntu
 LABEL mainatainer="Dioclecio Camelo <dmcamelo@uem.br>"
 LABEL br.uem.cpa.relatorios.backend.author="Dioclecio Camelo"
-RUN mkdir /root/.fonts/ && apt update && apt install -y texlive texlive-latex-extra texlive-fonts-extra texlive-fonts-recommended
+# RUN mkdir /root/.fonts/ && apt update && apt install -y texlive texlive-latex-extra texlive-fonts-extra texlive-fonts-recommended pdftk
+RUN mkdir /root/.fonts/ && apt update && apt install -y texlive texlive-latex-extra pdftk
 WORKDIR /app
 # COPY ./main /app/main
 COPY ./bg /app/bg

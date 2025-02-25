@@ -1,6 +1,6 @@
 ---
 titlepage: true
-titlepage-background: "capa"
+titlepage-background: "contracapa"
 titlepage-rule-color: "B3B3B3"
 page-background: "interna02"
 page-background-opacity: '1.0'

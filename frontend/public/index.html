@@ -20,25 +20,38 @@
     </style>
 </head>
 <body>
-    <h1>Upload de Arquivo ZIP</h1>
+    <header>
+        <h1 style="text-align: center;">Processamento de Arquivos</h1>
+        <nav>
+            <ul style="list-style-type: none; padding: 0; text-align: center;">
+                <li style="display: inline; margin-right: 20px;"><a href="#upload" style="text-decoration: none;">Upload</a></li>
+                <li style="display: inline; margin-right: 20px;"><a href="#resultados" style="text-decoration: none;">Resultados</a></li>
+            </ul>
+        </nav>
+    </header>
+    <h2 style="text-align: center;">Upload de Arquivo ZIP</h2>
     
-    <form id="uploadForm" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".zip" required>
-        <button type="submit">Enviar</button>
-    </form>
-
-    <div id="loading">
-        Processando... Isto pode levar até 30 minutos
+    <div id="upload" style="text-align: center;">
+        <h2>Envie seu arquivo ZIP</h2>
+        <div id="drop-area" style="border: 2px dashed #4CAF50; padding: 20px; margin: 20px auto; width: 80%; text-align: center;">
+            <p>Arraste e solte seu arquivo ZIP aqui ou clique para selecionar.</p>
+            <input type="file" name="file" accept=".zip" required style="display: none;" id="fileElem">
+            <label for="fileElem" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer;">Selecionar Arquivo</label>
+        </div>
+        <button id="uploadButton" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer;">Enviar</button>
     </div>
 
+    <div id="loading" style="text-align: center; font-weight: bold; display: none;">
+        Processando... Isto pode levar até 30 minutos
+    </div>
     <div id="resultados">
-        <h2>Resultados Anteriores</h2>
-        <table>
+        <h2 style="text-align: center;">Resultados Anteriores</h2>
+        <table style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr>
-                    <th>Data / Hora</th>
-                    <th>Nome do Arquivo</th>
-                    <th>Tamanho</th>
+                <th style="background-color: #f2f2f2;">Data / Hora</th>
+                <th style="background-color: #f2f2f2;">Nome do Arquivo</th>
+                <th style="background-color: #f2f2f2;">Tamanho</th>
                 </tr>
             </thead>
             <tbody id="listaResultados">
@@ -48,9 +61,15 @@
     </div>
 
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        document.getElementById('uploadButton').addEventListener('click', async (e) => {
             e.preventDefault();
-            const formData = new FormData(e.target);
+            const fileInput = document.getElementById('fileElem');
+            if (!fileInput.files.length) {
+                alert('Por favor, selecione um arquivo ZIP.');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
             const loadingIndicator = document.getElementById('loading');
 
             try {
@@ -105,9 +124,7 @@
                             </a>
                         </td>
                         <td>
-                            
-                                ${resultado.sizeFormatted}
-                            
+                            ${resultado.sizeFormatted}
                         </td>
                     `;
                     lista.appendChild(tr);
@@ -116,6 +133,27 @@
                 console.error('Erro ao carregar resultados:', error);
             }
         }
+
+        // Implementar funcionalidade de arrastar e soltar
+        const dropArea = document.getElementById('drop-area');
+
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '#3c763d';
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.style.borderColor = '#4CAF50';
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                fileInput.files = files;
+                carregarResultados();
+            }
+        });
 
         // Carregar resultados ao iniciar
         carregarResultados();

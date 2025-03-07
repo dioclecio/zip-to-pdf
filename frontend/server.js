@@ -19,6 +19,7 @@ if (!fs.existsSync(resultDir)) {
     fs.mkdirSync(resultDir, { recursive: true });
 }
 
+
 // Rota para página inicial
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, './public/index.html'));
@@ -116,8 +117,8 @@ app.get('/resultados', (req, res) => {
                 })
             };
         })
-        // Ordenar por data de criação decrescente
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        // Ordenar por data de criação crescente
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
         res.json(fileDetails);
     } catch (error) {

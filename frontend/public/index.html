@@ -3,40 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <title>Processamento de Arquivos</title>
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <style>
+
         #loading { display: none; }
         #resultados { margin-top: 20px; }
         table {
             width: 100%;
             border-collapse: collapse;
+            font-family: 'Inter';
         }
         table, th, td {
             border: 1px solid #ddd;
             padding: 8px;
+            font-family: 'Inter';
         }
         th {
             background-color: #f2f2f2;
+        }
+        li {
+            font-family: 'Inter';
+        }
+        p {
+            font-family: 'Inter';
+        }
+        h2 {
+            font-family: 'Inter';
+        }
+        a {
+            font-family: 'Inter';
+        }
+        body {
+            font-family: 'Inter';
+        }
+        header {
+            font-family: 'Inter';
+        }
+        nav {
+            font-family: 'Inter';
         }
     </style>
 </head>
 <body>
     <header>
-        <h1 style="text-align: center;">Processamento de Arquivos</h1>
-        <nav>
-            <ul style="list-style-type: none; padding: 0; text-align: center;">
-                <li style="display: inline; margin-right: 20px;"><a href="#upload" style="text-decoration: none;">Upload</a></li>
-                <li style="display: inline; margin-right: 20px;"><a href="#resultados" style="text-decoration: none;">Resultados</a></li>
+        <nav style="background-color: #001f3f; padding: 10px;">
+            <ul style="list-style-type: none; padding: 0; text-align: center; color: white;">
+                <li style="display: inline; margin-right: 20px;"><a href="#home" style="text-decoration: none; color: white;">Home</a></li>
+                <li style="display: inline; margin-right: 20px;"><a href="#importar" style="text-decoration: none; color: white;">Importar</a></li>
+                <li style="display: inline; margin-right: 20px;"><a href="#progresso" style="text-decoration: none; color: white;">Progresso</a></li>
+                <li style="display: inline; margin-right: 20px;"><a href="#gerar-relatorio" style="text-decoration: none; color: white;">Gerar Relatório</a></li>
+                <li style="display: inline; margin-right: 20px;"><a href="#gerar-pdfs" style="text-decoration: none; color: white;">Gerar PDFs</a></li>
             </ul>
         </nav>
     </header>
-    <h2 style="text-align: center;">Upload de Arquivo ZIP</h2>
+    <h2 style="text-align: center;">Inserir Arquivo</h2>
+    <p style="text-align: center;">
+        Insira o arquivo zip contendo os arquivos em Markdown e as pastas com as imagens em anexo. Certifique de que as imagens estejam com suas referências corretas e os links/notas estejam funcionando. Caso tenha dúvidas, utilize programas como o Typora. A conversão deverá demorar alguns minutos. Por isso, caso o navegador pare de responder, espere para voltar à página. O arquivo resultante ficará disponível na lista abaixo.
+    </p>
     
     <div id="upload" style="text-align: center;">
-        <h2>Envie seu arquivo ZIP</h2>
         <div id="drop-area" style="border: 2px dashed #4CAF50; padding: 20px; margin: 20px auto; width: 80%; text-align: center;">
             <p>Arraste e solte seu arquivo ZIP aqui ou clique para selecionar.</p>
             <input type="file" name="file" accept=".zip" required style="display: none;" id="fileElem">
-            <label for="fileElem" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer;">Selecionar Arquivo</label>
+            <label for="fileElem" style="background-color: #FF4C4C; color: white; padding: 10px 20px; border: none; cursor: pointer;">Selecione o arquivo ZIP</label>
         </div>
         <button id="uploadButton" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer;">Enviar</button>
     </div>
@@ -49,9 +81,9 @@
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr>
-                <th style="background-color: #f2f2f2;">Data / Hora</th>
+                <th style="background-color: #f2f2f2;">Data</th>
                 <th style="background-color: #f2f2f2;">Nome do Arquivo</th>
-                <th style="background-color: #f2f2f2;">Tamanho</th>
+                <th style="background-color: #f2f2f2;">Tamanho (Mb)</th>
                 </tr>
             </thead>
             <tbody id="listaResultados">

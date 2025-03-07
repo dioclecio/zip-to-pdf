@@ -18,5 +18,3 @@ mainfont: "EB Garamond"
 \pagebreak
 \listoffigures 
 \pagebreak
-\listoftables
-\pagebreak

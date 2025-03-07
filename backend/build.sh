@@ -6,5 +6,5 @@ podman login quay.io --authfile ../auth.json
 # Limpa os repositórios locais
 podman build . -t conversor-pdf-backend:latest -t conversor-pdf-backend:$version 
 
-podman push conversor-pdf-backend:$version quay.io/uemcpa/conversor-pdf-backend:$version
-podman push conversor-pdf-backend:latest quay.io/uemcpa/conversor-pdf-backend:latest
+podman push --authfile ../auth.json conversor-pdf-backend:$version quay.io/uemcpa/conversor-pdf-backend:$version
+podman push --authfile ../auth.json conversor-pdf-backend:latest quay.io/uemcpa/conversor-pdf-backend:latest

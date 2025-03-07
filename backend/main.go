@@ -11,7 +11,7 @@ import (
     "path/filepath"
     "strings"
     "time"
-    "github.com/pdfcpu/pdfcpu/pkg/api"
+    // "github.com/pdfcpu/pdfcpu/pkg/api"
 )
 
 // unzip extrai o conteúdo de um arquivo ZIP para um diretório de destino.
@@ -56,16 +56,36 @@ func unzip(src, dest string) error {
 }
 
 func combinePDFs(inputPDF, outputPDF string) error {
-    // Use pdfcpu to combine PDFs
-    inFiles := []string{"./bg/capa.pdf", inputPDF}
-    err := api.MergeCreateFile(inFiles, outputPDF, nil)
+    // Gerar nomes temporários no formato DOS (8.3)
+    tempInput := filepath.Join(filepath.Dir(inputPDF), "tempin.pdf")
+    tempOutput := filepath.Join(filepath.Dir(outputPDF), "tempout.pdf")
+
+    // Renomear o arquivo de entrada para o nome temporário
+    if err := os.Rename(inputPDF, tempInput); err != nil {
+        return fmt.Errorf("Erro ao renomear arquivo de entrada: %v", err)
+    }
+
+    // Comando para combinar a capa com o arquivo PDF usando pdftk
+    cmd := exec.Command("pdftk", "./bg/capa.pdf", tempInput, "cat", "output", tempOutput)
+    output, err := cmd.CombinedOutput()
     if err != nil {
         log.Printf("Erro ao combinar PDFs: %v\n", err)
+        log.Printf("Saída do comando: %s\n", string(output))
         return fmt.Errorf("Erro ao combinar %s com capa: %v", inputPDF, err)
     }
+
+    // Renomear o arquivo de saída para o nome original
+    if err := os.Rename(tempOutput, outputPDF); err != nil {
+        return fmt.Errorf("Erro ao renomear arquivo de saída: %v", err)
+    }
+
+    // Remover o arquivo temporário de entrada
+    if err := os.Remove(tempInput); err != nil {
+        log.Printf("Erro ao remover arquivo temporário de entrada: %v\n", err)
+    }
+
     return nil
 }
-
 
 
 // convertMarkdownToPDF converte um arquivo Markdown em PDF usando Pandoc.

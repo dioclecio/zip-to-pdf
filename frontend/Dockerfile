@@ -1,6 +1,6 @@
 # Usar a imagem base do Node.js
 FROM docker.io/node
-LABEL mainatainer="Dioclecio Camelo <dmcamelo@uem.br>"
+LABEL maintainer="Dioclecio Camelo <dmcamelo@uem.br>"
 LABEL br.uem.cpa.relatorios.frontend.author="Dioclecio Camelo"
 # LABEL br.uem.cpa.relatorios.frontend.version="v011"
 # Criar diretório de trabalho

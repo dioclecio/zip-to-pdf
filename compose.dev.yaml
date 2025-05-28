@@ -1,0 +1,24 @@
+services:
+  backend:
+    image: conversor-pdf-backend:latest
+    volumes:
+      - ./backend:/app:rw
+    entrypoint: apt install -y golang && tail -f /dev/null
+    networks:
+      - rede-cpa
+
+  frontend:
+    image: conversor-pdf-frontend:latest
+    volumes:
+      - conversor-pdf-frontend-data:/data:rw
+    environment:
+      - API_URL=http://backend:5000/upload
+    ports:
+      - 3000:3000
+    networks:
+      - rede-cpa
+volumes:
+  conversor-pdf-frontend-data:
+
+networks:
+  rede-cpa:

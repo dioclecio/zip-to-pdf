@@ -10,16 +10,14 @@ WORKDIR /src
 COPY . .
 RUN go mod tidy
 RUN go build main.go
-# RUN go get github.com/pdfcpu/pdfcpu
+# Criar a imagem final
 # Montar a imagem que vai para o repositório
-FROM docker.io/pandoc/extra:latest-ubuntu
+FROM docker.io/pandoc/latex:latest-ubuntu
 LABEL maintainer="Dioclecio Camelo <dmcamelo@uem.br>"
 LABEL br.uem.cpa.relatorios.backend.author="Dioclecio Camelo"
-# RUN mkdir /root/.fonts/ && apt update && apt install -y texlive texlive-latex-extra texlive-fonts-extra texlive-fonts-recommended pdftk
 RUN mkdir /root/.fonts/ && apt update && apt install -y texlive texlive-latex-extra pdftk
 RUN tlmgr install soul adjustbox babel-german background bidi collectbox csquotes everypage filehook footmisc footnotebackref framed fvextra letltxmacro ly1 mdframed mweights needspace pagecolor sourcecodepro sourcesanspro titling ucharcat ulem unicode-math upquote xecjk xurl zref
 WORKDIR /app
-# COPY ./main /app/main
 COPY ./bg /app/bg
 COPY --from=unzipper /opt/.fonts /root/.fonts
 COPY --from=compiler /src/main .

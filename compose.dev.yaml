@@ -3,7 +3,8 @@ services:
     image: conversor-pdf-backend:latest
     volumes:
       - ./backend:/app:rw
-    entrypoint: apt install -y golang && tail -f /dev/null
+    entrypoint: tail -f /dev/null
+    # command: apt install -y golang;
     networks:
       - rede-cpa
 

@@ -9,6 +9,7 @@ import (
     "os"
     "os/exec"
     "path/filepath"
+    "runtime"
     "strings"
     "time"
     // "github.com/pdfcpu/pdfcpu/pkg/api"
@@ -87,6 +88,23 @@ func combinePDFs(inputPDF, outputPDF string) error {
     return nil
 }
 
+// writeErrorLog writes conversion errors to a log file
+func writeErrorLog(pdfDir, mdFile string, err error, cmdOutput string) error {
+    logFile := filepath.Join(pdfDir, "conversion_errors.log")
+    f, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+    if err != nil {
+        return err
+    }
+    defer f.Close()
+
+    timestamp := time.Now().Format("2006-01-02 15:04:05")
+    logEntry := fmt.Sprintf("[%s] Erro ao converter arquivo: %s\nErro: %v\nSaída do Pandoc:\n%s\n-------------------\n", 
+        timestamp, mdFile, err, cmdOutput)
+    if _, err := f.WriteString(logEntry); err != nil {
+        return err
+    }
+    return nil
+}
 
 // convertMarkdownToPDF converte um arquivo Markdown em PDF usando Pandoc.
 func convertMarkdownToPDF(mdFilePath, pdfDir string) error {
@@ -111,7 +129,7 @@ func convertMarkdownToPDF(mdFilePath, pdfDir string) error {
     if err != nil {
         log.Printf("Erro ao converter PDF: %v\n", err)
         log.Printf("Saída do comando: %s\n", string(output))
-        return fmt.Errorf("Erro ao converter %s para PDF: %v", mdFilePath, err)
+        return fmt.Errorf("Erro ao converter %s para PDF: %v\n%s", mdFilePath, err, string(output))
     }
 
     log.Printf("Arquivo convertido para PDF: %s\n", pdfFilePath)
@@ -202,12 +220,24 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
         }
         if filepath.Ext(path) == ".md" {
             if err := convertMarkdownToPDF(path, pdfDir); err != nil {
-                return err
+                log.Printf("Erro ao converter arquivo %s: %v\n", path, err)
+                cmdOutput := ""
+                if strings.Contains(err.Error(), "Saída do comando:") {
+                    parts := strings.SplitN(err.Error(), "\n", 2)
+                    if len(parts) > 1 {
+                        cmdOutput = parts[1]
+                    }
+                }
+                if logErr := writeErrorLog(pdfDir, path, err, cmdOutput); logErr != nil {
+                    log.Printf("Erro ao gravar log: %v\n", logErr)
+                }
+                return nil // Continue processando outros arquivos
             }
+            runtime.GC() // Força a execução do garbage collector após cada conversão
         }
         return nil
     }); err != nil {
-        http.Error(w, "Erro ao converter arquivos Markdown para PDF", http.StatusInternalServerError)
+        http.Error(w, "Erro ao acessar arquivos Markdown", http.StatusInternalServerError)
         return
     }
 

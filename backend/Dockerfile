@@ -12,7 +12,7 @@ RUN go mod tidy
 RUN go build main.go
 # Criar a imagem final
 # Montar a imagem que vai para o repositório
-FROM docker.io/pandoc/latex:latest-ubuntu
+FROM docker.io/pandoc/extra:latest-ubuntu
 LABEL maintainer="Dioclecio Camelo <dmcamelo@uem.br>"
 LABEL br.uem.cpa.relatorios.backend.author="Dioclecio Camelo"
 RUN mkdir /root/.fonts/ && apt update && apt install -y texlive texlive-latex-extra pdftk

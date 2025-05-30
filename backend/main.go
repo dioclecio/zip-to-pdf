@@ -169,6 +169,22 @@ func zipDirectory(src, dest string) error {
     })
 }
 
+// copyLogFile copia o arquivo de log para o diretório de destino
+func copyLogFile(pdfDir, destDir string) error {
+    logFile := filepath.Join(pdfDir, "conversion_errors.log")
+    if _, err := os.Stat(logFile); os.IsNotExist(err) {
+        return nil // arquivo não existe, não é um erro
+    }
+
+    destFile := filepath.Join(destDir, "conversion_errors.log")
+    input, err := os.ReadFile(logFile)
+    if err != nil {
+        return err
+    }
+
+    return os.WriteFile(destFile, input, 0644)
+}
+
 // uploadHandler lida com o upload do arquivo e processa a conversão.
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
     if r.Method != http.MethodPost {
@@ -262,6 +278,11 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
     }); err != nil {
         http.Error(w, "Erro ao combinar PDFs com capa", http.StatusInternalServerError)
         return
+    }
+
+    // Antes de zipar, copie o arquivo de log
+    if err := copyLogFile(pdfDir, combinedDir); err != nil {
+        log.Printf("Erro ao copiar arquivo de log: %v\n", err)
     }
 
     // Gerar nome do arquivo com timestamp

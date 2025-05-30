@@ -20,6 +20,6 @@ login:
 push: login build
 	@VERSION=$$(cat .version); \
 	echo "Pushing image $(REPO)/$(IMAGE_NAME)backend:$$VERSION"; \
-	podman push $(IMAGE_NAME)backend:$$VERSION $(REPO)/$(IMAGE_NAME)backend:$$VERSION; \
+	podman push  --authfile ./auth.json $(IMAGE_NAME)backend:$$VERSION $(REPO)/$(IMAGE_NAME)backend:$$VERSION; \
 	echo "Pushing image $(REPO)/$(IMAGE_NAME)frontend:latest"; \
-	podman push $(IMAGE_NAME)frontend:latest $(REPO)/$(IMAGE_NAME)frontend:latest
+	podman push  --authfile ./auth.json $(IMAGE_NAME)frontend:latest $(REPO)/$(IMAGE_NAME)frontend:latest

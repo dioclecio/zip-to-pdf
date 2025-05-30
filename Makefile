@@ -1,4 +1,6 @@
-.PHONY: build push login
+.PHONY: all build push login
+
+all: push
 
 IMAGE_NAME = conversor-pdf-
 REPO = quay.io/uemcpa
